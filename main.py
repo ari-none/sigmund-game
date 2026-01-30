@@ -121,9 +121,9 @@ class Main(QWidget):
     ### Fonctions boutons 'menu' ###
     def b_play_press(self):
         print("ok")
-        if self.debounce:
+        if self.debounce_game:
             return
-        self.debounce = True
+        self.debounce_game = True
         game_running = True
         game_sequence: list[str] = []
         print("ok")
@@ -146,13 +146,14 @@ class Main(QWidget):
             self.label2.setText("Maintenant cliquez sur chaque bouton")
             
             for i in game_sequence:
-                while self.game_button_pressed == False:
+                while not self.game_button_pressed:
                     QTest.qWait(1)
                 self.game_button_pressed = False
                 
                 if self.last_press != i:
                     self.label2.setText(f"Perdu ! Veuillez recommencer une partie. (SCORE : {level})")
                     game_running = False
+                    self.game_button_pressed = False
                     return
     
     def b_login_press(self):
