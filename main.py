@@ -44,7 +44,8 @@ class Main(QWidget):
     def __init__(self, _app: QApplication):
         super().__init__()
         self.app = _app
-        self.debounce = False
+        self.debounce_button = False
+        self.debounce_login = False
         self.debounce_game = False
         self.last_press: str = ''
         self.game_button_pressed: bool = False
@@ -154,24 +155,25 @@ class Main(QWidget):
                     self.label2.setText(f"Perdu ! Veuillez recommencer une partie. (SCORE : {level})")
                     game_running = False
                     self.game_button_pressed = False
+                    self.debounce_game = False
                     return
     
     def b_login_press(self):
-        if self.debounce:
+        if self.debounce_login:
             return
-        self.debounce = True
+        self.debounce_login = True
         pass
     
     def b_quit_press(self):
         sys.exit(self.app.exec_())
     
     def b_score_press(self):
-        pass
+        pass #TODO Arinone faire un système de high score
     
     def g_button_press(self, col: str):
-        if self.debounce_game:
+        if self.debounce_button:
             return
-        self.debounce_game = True
+        self.debounce_button = True
         
         self.last_press = col
         self.game_button_pressed = True
@@ -180,7 +182,7 @@ class Main(QWidget):
         QTest.qWait(200)
         selected_button["widget"].setStyleSheet(selected_button["stylesheet_def"])
         QTest.qWait(200)
-        self.debounce_game = False
+        self.debounce_button = False
             
             
 
