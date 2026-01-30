@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 
 class Login(QWidget):
-    def __init__(self):
+    def __init__(self, _app: QApplication):
         super().__init__()
+        self.app = _app
         #TODO à faire
