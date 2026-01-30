@@ -133,15 +133,15 @@ class Main(QWidget):
             level = len(game_sequence)
             self.label1.setText(f"Niveau : {level}")
             self.label2.setText("Mémorisez la séquence")
-            QTest.qWait(750)
+            QTest.qWait(1000)
             
         
             for i in game_sequence:
                 selected_button = button_map[i]
                 selected_button["widget"].setStyleSheet(selected_button["stylesheet_hilight"])
-                QTest.qWait(200)
+                QTest.qWait(250)
                 selected_button["widget"].setStyleSheet(selected_button["stylesheet_def"])
-                QTest.qWait(200)
+                QTest.qWait(250)
         
             self.label2.setText("Maintenant cliquez sur chaque bouton")
             
