@@ -192,7 +192,7 @@ class Main(QWidget):
                     temps_f = min(round(time.time() - temps_d, 3), 9999999.999)
                     self.label2.setText(f"Perdu ! Veuillez recommencer une partie.\n(SCORE : {level})\n(TEMPS : {temps_f})")
                     
-                    if app.logged_user > 0:
+                    if app.logged_user > 0 and not game_set_sequence:
                         con, cur = query_manager.db_connect()
                         cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
                         con.commit()

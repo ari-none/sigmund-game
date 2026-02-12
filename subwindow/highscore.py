@@ -6,3 +6,6 @@ class HighScore(QWidget):
         self.app = _app
         self.main_window = _pwin
         # TODO: Faire le tableau des scores
+    
+    def closeEvent(self, a0):
+        self.app.submenu_open = False
