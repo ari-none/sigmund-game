@@ -1,7 +1,7 @@
--- --- --
+-- ------------------------------------------------------------ --
 -- Script pour la création de la base de données du jeu Sigmund --
--- --
--- --- --
+-- Pensez à bien lire le REDME.md !                             --
+-- ------------------------------------------------------------ --
 
 
 -- ---------------------- --
@@ -33,7 +33,7 @@ CREATE TABLE UTILISATEUR (
 CREATE TABLE PARTIE (
         id INT NOT NULL,
         sequence VARCHAR(255) NOT NULL,
-        temps TIME NOT NULL,
+        temps DECIMAL(10,3) NOT NULL,
         id_utilisateur INT NOT NULL,
         CONSTRAINT PARTIE_PK PRIMARY KEY (id),
         CONSTRAINT id_UNQ UNIQUE (id),
