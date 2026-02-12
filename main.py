@@ -1,8 +1,14 @@
 import sys
 import random as r
-
+import time
 from PyQt5.QtWidgets import *
 from PyQt5.QtTest import QTest
+
+import query_manager
+from query_manager import db_connect, db_disconnect
+from subwindow.account import Account
+from subwindow.login import Login
+# from subwindow.account import Account TODO: Terminer les comptes & inscriptions
 
 
 
@@ -45,8 +51,8 @@ class Main(QWidget):
         super().__init__()
         self.app = _app
         self.debounce_button = False
-        self.debounce_login = False
         self.debounce_game = False
+        self.game_running = False
         self.last_press: str = ''
         self.game_button_pressed: bool = False
         
@@ -55,9 +61,9 @@ class Main(QWidget):
         self.b_play.setText("Jouer")
         self.b_play.pressed.connect(self.b_play_press)
         
-        self.b_login = QPushButton()
-        self.b_login.setText("Connexion\nInscription")
-        self.b_login.pressed.connect(self.b_login_press)
+        self.b_account = QPushButton()
+        self.b_account.setText("Compte")
+        self.b_account.pressed.connect(self.b_account_press)
         
         self.b_score = QPushButton()
         self.b_score.setText("Scores")
@@ -69,9 +75,9 @@ class Main(QWidget):
         
         bLayout = QHBoxLayout()
         bLayout.addWidget(self.b_play)
-        bLayout.addWidget(self.b_login)
-        bLayout.addWidget(self.b_quit)
+        bLayout.addWidget(self.b_account)
         bLayout.addWidget(self.b_score)
+        bLayout.addWidget(self.b_quit)
         
         ### Boutons du jeu ###
         self.g_red = QPushButton()
@@ -120,21 +126,52 @@ class Main(QWidget):
     
     
     ### Fonctions boutons 'menu' ###
-    def b_play_press(self):
-        print("ok")
-        if self.debounce_game:
+    def b_play_press(self, sequence: tuple[str, str] | None = None):
+        if self.debounce_game or self.app.submenu_open:
             return
         self.debounce_game = True
-        game_running = True
+        self.game_running = True
+        
+        game_set_sequence = sequence is not None
+        seed_sequence: list[str] | None = list(sequence[0]) if game_set_sequence else None
+        seed_og_user: str | None = sequence[1] if game_set_sequence else None
+        
         game_sequence: list[str] = []
-        print("ok")
-        while game_running:
-            print("ok")
-            game_sequence.append(num_map[r.randint(1, 4)])
-            level = len(game_sequence)
-            self.label1.setText(f"Niveau : {level}")
+        temps_d = time.time()
+        while self.game_running:
+            level = len(game_sequence) + 1
+            if game_set_sequence and level == len(seed_sequence):
+                temps_f = min(round(time.time() - temps_d, 3), 9999999.999)
+                self.label2.setText(f"Vous avez gagné la partie de {seed_og_user} !\n(SCORE : {level})\n(TEMPS : {temps_f})")
+
+                self.game_running = False
+                self.game_button_pressed = False
+                self.debounce_game = False
+                return
+            
+            if game_set_sequence:
+                game_sequence.append(seed_sequence[level-1])
+            else:
+                game_sequence.append(num_map[r.randint(1, 4)])
+            self.label1.setText(f"Niveau : {level}/{len(seed_sequence)}" if game_set_sequence else f"Niveau : {level}")
             self.label2.setText("Mémorisez la séquence")
             QTest.qWait(1000)
+            
+            
+            if len(game_sequence) >= 250:
+                temps_f = min(round(time.time() - temps_d, 3), 9999999.999)
+                self.label2.setText(f"Oké, oké ! T'as gagné ! Va toucher de l'herbe maintenant.\n(SCORE : {level})\n(TEMPS : {temps_f})")
+
+                if app.logged_user > 0:
+                    con, cur = query_manager.db_connect()
+                    cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
+                    con.commit()
+                    query_manager.db_disconnect(con)
+
+                self.game_running = False
+                self.game_button_pressed = False
+                self.debounce_game = False
+                return
             
         
             for i in game_sequence:
@@ -152,23 +189,55 @@ class Main(QWidget):
                 self.game_button_pressed = False
                 
                 if self.last_press != i:
-                    self.label2.setText(f"Perdu ! Veuillez recommencer une partie. (SCORE : {level})")
-                    game_running = False
+                    temps_f = min(round(time.time() - temps_d, 3), 9999999.999)
+                    self.label2.setText(f"Perdu ! Veuillez recommencer une partie.\n(SCORE : {level})\n(TEMPS : {temps_f})")
+                    
+                    if app.logged_user > 0:
+                        con, cur = query_manager.db_connect()
+                        cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
+                        con.commit()
+                        query_manager.db_disconnect(con)
+                    
+                    self.game_running = False
                     self.game_button_pressed = False
                     self.debounce_game = False
                     return
     
-    def b_login_press(self):
-        if self.debounce_login:
+    def b_account_press(self):
+        if self.debounce_game or self.app.submenu_open:
             return
-        self.debounce_login = True
-        pass
-    
-    def b_quit_press(self):
-        sys.exit(self.app.exec_())
+        
+        if self.app.logged_user > 0:
+            self.app.submenu_open = True
+            self.new_win = Account(self.app)
+            self.new_win.setWindowTitle("Compte")
+            self.new_win.setMinimumSize(500, 750)
+            self.new_win.show()
+        else:
+            self.app.submenu_open = True
+            self.new_win = Login(self.app)
+            self.new_win.setWindowTitle("Connexion")
+            self.new_win.setMinimumSize(500, 500)
+            self.new_win.show()
     
     def b_score_press(self):
-        pass #TODO Arinone faire un système de high score
+        if self.debounce_game or self.app.submenu_open:
+            return
+        if self.app.logged_user > 0:
+            """self.app.submenu_open = True
+            self.new_win = Login(self.app)
+            self.new_win.setWindowTitle("Connexion")
+            self.new_win.setMinimumSize(500, 500)
+            self.new_win.show() # TODO: Faire le tableau des scores"""
+            self.b_play_press(("rgybrgybrgyb", "JohnDoe")) # TODO: Remettre la ligne au dessus quand les scores sont implementés
+        else:
+            QMessageBox.critical(self, "Compte requis", "Vous devez créer un compte pour accéder à cette fonctionalité !")
+
+    def b_quit_press(self):
+        if self.debounce_game or self.app.submenu_open:
+            return
+        sys.exit(self.app.exec_())
+    
     
     def g_button_press(self, col: str):
         if self.debounce_button:
@@ -190,6 +259,8 @@ class Main(QWidget):
 
 ### Démarrage du programme ###
 app = QApplication(sys.argv)
+app.logged_user = -1 # Sécurité de la NASA
+app.submenu_open = False
 window = Main(app)
 window.setWindowTitle("Jeu su sigmund")
 window.setMinimumSize(500, 750)
