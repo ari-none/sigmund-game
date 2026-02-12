@@ -37,6 +37,5 @@ CREATE TABLE PARTIE (
                         id_utilisateur INT NOT NULL,
                         CONSTRAINT PARTIE_PK PRIMARY KEY (id),
                         CONSTRAINT id_UNQ UNIQUE (id),
-                        CONSTRAINT id_utilisateur_UNQ UNIQUE (id_utilisateur),
                         CONSTRAINT PARTIE_id_utilisateur_FK FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEUR (id)
 )ENGINE=InnoDB;
