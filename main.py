@@ -1,6 +1,8 @@
 import sys
 import random as r
 import time
+
+from mariadb import OperationalError
 from PyQt5.QtWidgets import *
 from PyQt5.QtTest import QTest
 
@@ -163,10 +165,13 @@ class Main(QWidget):
                 self.label2.setText(f"Oké, oké ! T'as gagné ! Va toucher de l'herbe maintenant.\n(SCORE : {level})\n(TEMPS : {temps_f})")
 
                 if app.logged_user > 0:
-                    con, cur = query_manager.db_connect()
-                    cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
-                    con.commit()
-                    query_manager.db_disconnect(con)
+                    try:
+                        con, cur = query_manager.db_connect()
+                        cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
+                        con.commit()
+                        query_manager.db_disconnect(con)
+                    except OperationalError:
+                        query_manager.query_error(self, "Le score n'a pas pu être enregistré en ligne !")
 
                 self.game_running = False
                 self.game_button_pressed = False
@@ -193,10 +198,13 @@ class Main(QWidget):
                     self.label2.setText(f"Perdu ! Veuillez recommencer une partie.\n(SCORE : {level})\n(TEMPS : {temps_f})")
                     
                     if app.logged_user > 0 and not game_set_sequence:
-                        con, cur = query_manager.db_connect()
-                        cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
-                        con.commit()
-                        query_manager.db_disconnect(con)
+                        try:
+                            con, cur = query_manager.db_connect()
+                            cur.execute("INSERT INTO PARTIE(sequence, temps, id_utilisateur) VALUES (?, ?, ?);", ["".join(game_sequence), temps_f, self.app.logged_user])
+                            con.commit()
+                            query_manager.db_disconnect(con)
+                        except OperationalError:
+                            query_manager.query_error(self, "Le score n'a pas pu être enregistré en ligne !")
                     
                     self.game_running = False
                     self.game_button_pressed = False
@@ -206,6 +214,14 @@ class Main(QWidget):
     def b_account_press(self):
         if self.debounce_game or self.app.submenu_open:
             return
+
+        try:
+            con, _ = query_manager.db_connect()
+            query_manager.db_disconnect(con)
+        except OperationalError:
+            query_manager.query_error(self, "Il y a eu un problème de connection !")
+            return
+
         
         if self.app.logged_user > 0:
             self.app.submenu_open = True

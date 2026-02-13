@@ -1,3 +1,4 @@
+from mariadb import OperationalError
 from PyQt5.QtWidgets import *
 
 import query_manager
@@ -49,7 +50,7 @@ class Signup(QWidget):
 
 
         if self.username.text() == "" or self.username.text().isspace() or self.username.text() is None or not self.username.text().isalnum() or not 5 <= len(self.username.text()) <= 50:
-            self.output_label.setText("Vous devez entrer un nom d'utilisateur correct ! (Alphanumérique uniquement et entre 5–50 caractères inclusif)")
+            self.output_label.setText("Vous devez entrer un nom d'utilisateur correct !\n(Alphanumérique uniquement et entre 5–50 caractères inclusif)")
             self.output_label.show()
             return
 
@@ -60,10 +61,15 @@ class Signup(QWidget):
             return
 
 
-        con, cur = query_manager.db_connect()
-        cur.execute("SELECT pseudo FROM UTILISATEUR WHERE pseudo = ? LIMIT 1;", [self.username.text()])
-        userdata = cur.fetchone()
-        query_manager.db_disconnect(con)
+        try:
+            con, cur = query_manager.db_connect()
+            cur.execute("SELECT pseudo FROM UTILISATEUR WHERE pseudo = ? LIMIT 1;", [self.username.text()])
+            userdata = cur.fetchone()
+            query_manager.db_disconnect(con)
+        except OperationalError:
+            query_manager.query_error(self, "Il y a eu un problème lors de l'inscription !")
+            self.close()
+            return
 
         if userdata is not None and userdata != []:
             if userdata[0] == self.username.text():
@@ -72,10 +78,15 @@ class Signup(QWidget):
                 return
 
         
-        con, cur = query_manager.db_connect()
-        cur.execute("INSERT INTO UTILISATEUR(pseudo, password, email) VALUES (?, ?, ?);", [self.username.text(), hashed_password, email_address])
-        con.commit()
-        query_manager.db_disconnect(con)
+        try:
+            con, cur = query_manager.db_connect()
+            cur.execute("INSERT INTO UTILISATEUR(pseudo, password, email) VALUES (?, ?, ?);", [self.username.text(), hashed_password, email_address])
+            con.commit()
+            query_manager.db_disconnect(con)
+        except OperationalError:
+            query_manager.query_error(self, "Il y a eu un problème lors de l'inscription !")
+            self.close()
+            return
         
         
         self.close()

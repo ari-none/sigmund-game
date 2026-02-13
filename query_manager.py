@@ -1,4 +1,5 @@
 from os import getenv
+from PyQt5.QtWidgets import QMessageBox, QWidget
 import mariadb
 import dotenv
 import hashlib
@@ -52,3 +53,6 @@ def db_disconnect(connection: mariadb.Connection) -> None:
     """
     connection.cursor().close()
     connection.close()
+
+def query_error(app: QWidget, msg: str) -> None:
+    QMessageBox.critical(app, "Erreur", f"{msg} Veuillez vérifier votre connection internet ou voir si les serveurs sont hors-ligne.", QMessageBox.StandardButton.Ok, QMessageBox.StandardButton.Ok)

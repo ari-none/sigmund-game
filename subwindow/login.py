@@ -1,3 +1,4 @@
+from mariadb import OperationalError
 from PyQt5.QtWidgets import *
 
 import query_manager
@@ -72,10 +73,15 @@ class Login(QWidget):
             return
 
 
-        con, cur = query_manager.db_connect()
-        cur.execute("SELECT pseudo, password, id FROM UTILISATEUR WHERE pseudo = ? LIMIT 1;", [self.username.text()])
-        userdata = cur.fetchone()
-        query_manager.db_disconnect(con)        
+        try:
+            con, cur = query_manager.db_connect()
+            cur.execute("SELECT pseudo, password, id FROM UTILISATEUR WHERE pseudo = ? LIMIT 1;", [self.username.text()])
+            userdata = cur.fetchone()
+            query_manager.db_disconnect(con)
+        except OperationalError:
+            query_manager.query_error(self, "Il y a eu un problème lors de la connection au compte !")
+            self.close()
+            return
         
         if userdata is None or userdata == []:
             self.output_label.setText("Utilisateur non trouvé ! Si vous n'avez pas de compte, veuillez en créer un.")
