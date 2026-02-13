@@ -233,7 +233,7 @@ class Main(QWidget):
             self.app.submenu_open = True
             self.new_win = Login(self.app)
             self.new_win.setWindowTitle("Connexion")
-            self.new_win.setMinimumSize(500, 500)
+            self.new_win.setMinimumSize(500, 150)
             self.new_win.show()
     
     def b_score_press(self):
@@ -250,9 +250,9 @@ class Main(QWidget):
             QMessageBox.critical(self, "Compte requis", "Vous devez créer un compte pour accéder à cette fonctionalité !")
 
     def b_quit_press(self):
-        if self.debounce_game or self.app.submenu_open:
-            return
-        sys.exit(self.app.exec_())
+        result = QMessageBox.warning(self, "Confirmer", "Êtes-vous sûr de quitter le jeu du Sigmund ?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if result == QMessageBox.StandardButton.Yes:
+            sys.exit(self.app.exec_())
     
     
     def g_button_press(self, col: str):

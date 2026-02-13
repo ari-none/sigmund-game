@@ -47,7 +47,7 @@ class Login(QWidget):
     def signup_button_press(self):
         self.new_win = Signup(self.app, self)
         self.new_win.setWindowTitle("Inscription")
-        self.new_win.setMinimumSize(500, 500)
+        self.new_win.setMinimumSize(500, 150)
         self.new_win.show()
         self.hide()
     
