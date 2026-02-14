@@ -9,6 +9,7 @@ from PyQt5.QtTest import QTest
 import query_manager
 from query_manager import db_connect, db_disconnect
 from subwindow.account import Account
+from subwindow.highscore import HighScore
 from subwindow.login import Login
 # from subwindow.account import Account TODO: Terminer les comptes & inscriptions
 
@@ -111,9 +112,11 @@ class Main(QWidget):
         ### Labels ###
         self.label1 = QLabel()
         self.label1.setText("Niveau : 0")
+        self.label1.setStyleSheet("font-size: 30px;")
         
         self.label2 = QLabel()
         self.label2.setText("Appuyez sur [Jouer] pour jouer.")
+        self.label2.setStyleSheet("font-size: 25px;")
         
         ### Layout principal ###
         mainLayout = QVBoxLayout()
@@ -142,6 +145,8 @@ class Main(QWidget):
         temps_d = time.time()
         while self.game_running:
             level = len(game_sequence) + 1
+            self.label1.setText(f"Niveau : {level}/{len(seed_sequence)}" if game_set_sequence else f"Niveau : {level}")
+            
             if game_set_sequence and level == len(seed_sequence):
                 temps_f = min(round(time.time() - temps_d, 3), 9999999.999)
                 self.label2.setText(f"Vous avez gagné la partie de {seed_og_user} !\n(SCORE : {level})\n(TEMPS : {temps_f})")
@@ -155,7 +160,6 @@ class Main(QWidget):
                 game_sequence.append(seed_sequence[level-1])
             else:
                 game_sequence.append(num_map[r.randint(1, 4)])
-            self.label1.setText(f"Niveau : {level}/{len(seed_sequence)}" if game_set_sequence else f"Niveau : {level}")
             self.label2.setText("Mémorisez la séquence")
             QTest.qWait(1000)
             
@@ -240,12 +244,11 @@ class Main(QWidget):
         if self.debounce_game or self.app.submenu_open:
             return
         if self.app.logged_user > 0:
-            """self.app.submenu_open = True
-            self.new_win = Login(self.app)
-            self.new_win.setWindowTitle("Connexion")
+            self.app.submenu_open = True
+            self.new_win = HighScore(self.app, self)
+            self.new_win.setWindowTitle("Scores")
             self.new_win.setMinimumSize(500, 500)
-            self.new_win.show() # TODO: Faire le tableau des scores"""
-            self.b_play_press(("rgybrgybrgyb", "JohnDoe")) # TODO: Remettre la ligne au dessus quand les scores sont implementés
+            self.new_win.show()
         else:
             QMessageBox.critical(self, "Compte requis", "Vous devez créer un compte pour accéder à cette fonctionalité !")
 
