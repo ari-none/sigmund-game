@@ -193,6 +193,7 @@ class Main(QWidget):
             self.label2.setText("Maintenant cliquez sur chaque bouton")
             
             for i in game_sequence:
+                self.game_button_pressed = False
                 while not self.game_button_pressed:
                     QTest.qWait(1)
                 self.game_button_pressed = False
