@@ -11,7 +11,7 @@ from query_manager import db_connect, db_disconnect
 from subwindow.account import Account
 from subwindow.highscore import HighScore
 from subwindow.login import Login
-# from subwindow.account import Account TODO: Terminer les comptes & inscriptions
+from subwindow.account import Account
 
 
 
@@ -232,7 +232,7 @@ class Main(QWidget):
             self.app.submenu_open = True
             self.new_win = Account(self.app)
             self.new_win.setWindowTitle("Compte")
-            self.new_win.setMinimumSize(500, 750)
+            self.new_win.setMinimumSize(500, 200)
             self.new_win.show()
         else:
             self.app.submenu_open = True
